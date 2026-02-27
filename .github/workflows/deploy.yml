@@ -4,64 +4,60 @@ on: [workflow_dispatch]
 
 permissions:
   id-token: write # Require write permission to Fetch an OIDC token.
-  contents: read  # This is required for actions/checkout
+  contents: read # This is required for actions/checkout
 
 env:
-  # For AZURE_WEBAPP_NAME enter just the name, not the full URL.
-  # AZURE_WEBAPP_NAME: <your web app name> 
-  AZURE_WEBAPP_NAME: az2006app15025
+  AZURE_WEBAPP_NAME: az2006app14656
   RESOURCE_GROUP: az2006-rg
-  
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    # Setup .net
-    - uses: actions/checkout@v4
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      # Setup .net
+      - uses: actions/checkout@v4
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
 
-    #Build/publish the .net project
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build ./az2006webapp.sln --configuration Release
-    - name: Publish
-      run: |
-        dotnet publish ./az2006webapp.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
-        cd ${{env.DOTNET_ROOT}}/myapp
-        zip -r ../app.zip .
-    
-    # upload the published website code artifacts
-    - name: Upload artifact for deployment job
-      uses: actions/upload-artifact@v4
-      with:
-        name: .net-app
-        path: ${{env.DOTNET_ROOT}}/app.zip
+      #Build/publish the .net project
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build ./az2006webapp.sln --configuration Release
+      - name: Publish
+        run: |
+          dotnet publish ./az2006webapp.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+          cd ${{env.DOTNET_ROOT}}/myapp
+          zip -r ../app.zip .
 
-    #Download the publish files created in previous job
-    - name: Download artifact from build job
-      uses: actions/download-artifact@v4
-      with:
-        name: .net-app
-        path: .net-app
+      # upload the published website code artifacts
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/app.zip
 
-    #Login in your azure subscription using OpenID Connect (credentials stored as GitHub secrets in repo)
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #Download the publish files created in previous job
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          path: .net-app
 
-    # Publish website to Azure App Service using CLI (WebApp)
-    - name: Publish Website to WebApp
-      uses: Azure/cli@v2
-      with:
-        inlineScript: |
+      #Login in your azure subscription using OpenID Connect (credentials stored as GitHub secrets in repo)
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Publish website to Azure App Service using CLI (WebApp)
+      - name: Publish Website to WebApp
+        uses: Azure/cli@v2
+        with:
+          inlineScript: |
             az webapp deploy --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --src-path .net-app/app.zip --type zip

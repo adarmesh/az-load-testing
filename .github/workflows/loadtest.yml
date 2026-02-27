@@ -4,20 +4,15 @@ on: [workflow_dispatch]
 
 permissions:
   id-token: write # Require write permission to Fetch an OIDC token.
-  contents: read  # This is required for actions/checkout
+  contents: read # This is required for actions/checkout
 
 env:
-  # For AZURE_WEBAPP_NAME enter just the name, not the full URL.
   RESOURCE_GROUP: az2006-rg
   LOAD_TEST_RESOURCE: az2006loadtest
-  # AZURE_WEBAPP_NAME: <your web app name> 
-  AZURE_WEBAPP_NAME: az2006app15025
+  AZURE_WEBAPP_NAME: az2006app14656
 
 jobs:
-  # This workflow consists of a single job called "loadtest"
-
   loadtest:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +30,7 @@ jobs:
       - name: Azure Load Testing
         uses: azure/load-testing@v1
         with:
-          loadTestConfigFile: 'config.yaml'
+          loadTestConfigFile: "config.yaml"
           loadTestResource: ${{ env.LOAD_TEST_RESOURCE}}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           env: |
@@ -52,5 +47,3 @@ jobs:
         with:
           name: loadTestResults
           path: ${{github.workspace}}/loadTest
-
-          
