@@ -10,7 +10,7 @@ env:
   # For AZURE_WEBAPP_NAME enter just the name, not the full URL.
   RESOURCE_GROUP: az2006-rg
   LOAD_TEST_RESOURCE: az2006loadtest
-  AZURE_WEBAPP_NAME: az2006app14656
+  AZURE_WEBAPP_NAME: az2006app26168
 
 jobs:
   # This workflow consists of a single job called "loadtest"
