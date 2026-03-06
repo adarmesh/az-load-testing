@@ -1,0 +1,32 @@
+name: Swap Staging to Production
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Load Test"]
+    types:
+      - completed
+
+env:
+  AZURE_WEBAPP_NAME: az2006app26168
+  RESOURCE_GROUP: az2006-rg
+
+jobs:
+  swap:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Swap Slots
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az webapp deployment slot swap \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --slot staging \
+              --target-slot production
